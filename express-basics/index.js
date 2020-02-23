@@ -2,7 +2,7 @@ const express = require('express');
 const Joi = require('joi');
 const app=express();
 
-
+//middleware
 app.use(express.json());
 
 const courses=[
@@ -40,14 +40,9 @@ app.post('/api/courses',(req,res)=>{
         return;
     } */
 
-    const schema = {
-        name:Joi.string().min(3).required()
-    };
+    const {error} = validateCourse(req.body);
 
-    const result = Joi.validate(req.body, schema);
-    //console.log(result);
-
-    if(result.error){
+    if(error){
         //400 bad request
         res.status(400).send(result.error.details[0].message);
         return;
@@ -62,9 +57,51 @@ app.post('/api/courses',(req,res)=>{
 });
 
 //query string parameters
-//  /api/courses/1?sortBy=name
+//  /api/courses/1?sortBy=name ==>> req.quert
 
+app.put('/api/courses/:id',(req,res)=>{
+    //look up course
+    //if no course return 404
+    const course = courses.find(c => c.id=== parseInt(req.params.id));
+    if(!course){   
+        res.status(404).send("Course not found");
+        return;
+    }
+    //validate
+    //if invalid return 400
 
+    const result = validateCourse(req.body);
+    const {error} = validateCourse(req.body); // getting result.error - object destructuring
+     
+    if(error){ 
+        res.status(400).send(result.error.details[0].message);
+        return;
+    }
+
+    //update course
+    course.name=req.body.name;
+    res.send(course);
+
+});
+
+app.delete('/api/courses/:id',(req,res)=>{
+    const course = courses.find(c => c.id=== parseInt(req.params.id));
+    if(!course){   
+        return res.status(404).send("Course not found");
+    }
+
+    const index=courses.indexOf(course);
+    courses.splice(index,1);
+
+    res.send(course);
+});
+
+function validateCourse(course){
+    const schema = {
+        name:Joi.string().min(3).required()
+    };
+    return Joi.validate(course, schema);
+};
 
 //function optional
 //we need env variable for produxtion environments
