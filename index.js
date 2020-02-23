@@ -5,6 +5,17 @@ const app=express();
 //middleware
 app.use(express.json());
 
+//custom middleware
+app.use((req,res,next)=>{
+    console.log("Logging.....");
+    next();
+});
+
+app.use((req,res,next)=>{
+    console.log("Authenticating.....");
+    next();
+});
+
 const courses=[
     {id:1,name:"Maths"},
     {id:2,name:"Science"},
